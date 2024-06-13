@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Annonce</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,17 +17,18 @@
         .form-group {
             margin-bottom: 1em;
         }
-        .title {
-            text-align: center;
-            color: #00008B;
-            font-size: 2.5em;
-            font-weight: bold;
-        }
-        .gras {
-            font-weight: bold;
-            font-size: 1.5em;
-        }
-        .subtitle {
+		.title {
+			text-align: center;
+			color: #00008B;	
+			font-size: 2.5em;
+			font-weight: bold;
+		}
+		.gras {
+			font-weight: bold;
+			font-size: 1.5 em;
+		}
+
+		.subtitle {
             color: gray;
             font-style: italic;
             text-align: center;
@@ -40,7 +43,7 @@
             padding: 0.5em;
             box-sizing: border-box;
         }
-        .inline-input {
+		.inline-input {
             display: inline-block;
             width: auto;
             min-width: 200px;
@@ -52,103 +55,112 @@
             border: none;
             cursor: pointer;
         }
+        canvas {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="title">Créez une annonce</h1>
-        <div class="subtitle">Sous-louez votre colocation</div>
-        <br>
-        <div class="gras">Vos informations</div>
-        <br>
+		<div class="subtitle">Sous-louez votre colocation</div>
+		<br>
+		<div class="gras">Vos informations</div>
+		<br>
         <form id="annonce-form">
             <div class="form-group">
                 <label for="locataire">Votre nom et prénom :</label>
                 <input type="text" id="locataire" name="locataire" required>
             </div>
-            <div class="form-group">
+			<div class="form-group">
                 <label for="adresse_loc">Numéro de logement :</label>
-                <input type="text" id="adresse_loc" name="logement" required>
+                <input type="text" id="adresse_loc" name="adresse_loc" required>
             </div>
-            <div class="form-group">
+			<div class="form-group">
                 <label for="num_loc">Numéro de téléphone :</label>
                 <input type="text" id="num_loc" name="num_loc" required>
             </div>
-            <div class="form-group">
+			<div class="form-group">
                 <label for="date_libre">Date à laquelle vous libérez votre logement :</label>
                 <input type="text" id="date_libre" name="date_libre" required>
             </div>
-            <div class="form-group">
+			<div class="form-group">
                 <label for="date_occupe">Date à laquelle vous récupérez votre logement :</label>
                 <input type="text" id="date_occupe" name="date_occupe" required>
             </div>
             <div class="form-group">
                 <label for="salon">Photo du salon :</label>
-                <input type="file" id="salon" name="salon" accept="image/*" required>
+                <input type="file" id="salon" name="salon" accept="image/*">
             </div>
-            <div class="form-group">
+			<div class="form-group">
                 <label for="chambre">Photo de la chambre :</label>
-                <input type="file" id="chambre" name="chambre" accept="image/*" required>
+                <input type="file" id="chambre" name="chambre" accept="image/*">
             </div>
-            <button type="button" id="submit-btn" class="button">Soumettre</button>
+            <button type="submit">Soumettre</button>
         </form>
+        <p id="confirmation-message" style="display: none; color: green;">Envoyé !</p>
     </div>
 
     <script>
-        document.getElementById('submit-btn').addEventListener('click', function() {
-            // Validation du formulaire (ici, vous pouvez ajouter des validations supplémentaires si nécessaire)
-            if (document.getElementById('annonce-form').checkValidity()) {
-                const formData = new FormData(document.getElementById('annonce-form'));
-                const readerSalon = new FileReader();
-                const readerChambre = new FileReader();
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "VOTRE_API_KEY",
+            authDomain: "VOTRE_AUTH_DOMAIN",
+            projectId: "VOTRE_PROJECT_ID",
+            storageBucket: "VOTRE_STORAGE_BUCKET",
+            messagingSenderId: "VOTRE_MESSAGING_SENDER_ID",
+            appId: "VOTRE_APP_ID"
+        };
 
-                readerSalon.onload = function(e) {
-                    formData.set('salon', e.target.result);
-                    readerChambre.readAsDataURL(document.getElementById('chambre').files[0]);
-                };
+        // Initialisation de Firebase
+        firebase.initializeApp(firebaseConfig);
 
-                readerChambre.onload = function(e) {
-                    formData.set('chambre', e.target.result);
-                    const annonceData = {};
-                    formData.forEach((value, key) => {
-                        annonceData[key] = value;
-                    });
-                    // Encodage des données pour l'URL
-                    const params = new URLSearchParams(Object.entries(annonceData));
-                    // Redirection vers la page de confirmation avec les paramètres d'URL
-                    window.location.href = 'confirmation.html?' + params.toString();
-                };
+        // Accéder à Firestore
+        const db = firebase.firestore();
 
-                readerSalon.readAsDataURL(document.getElementById('salon').files[0]);
-            } else {
-                // Si le formulaire n'est pas valide, afficher un message d'erreur ou effectuer une action appropriée
-                alert('Veuillez remplir tous les champs correctement.');
-            }
-        });
+        // Fonction pour enregistrer l'annonce dans Firestore
+        function enregistrerAnnonce(event) {
+            event.preventDefault(); // Empêche la soumission du formulaire par défaut
+
+            // Récupérer les valeurs du formulaire
+            const locataire = document.getElementById('locataire').value;
+            const adresse_loc = document.getElementById('adresse_loc').value;
+            const num_loc = document.getElementById('num_loc').value;
+            const date_libre = document.getElementById('date_libre').value;
+            const date_occupe = document.getElementById('date_occupe').value;
+
+            // Enregistrer dans Firestore
+            db.collection("annonces").add({
+                locataire: locataire,
+                adresse_loc: adresse_loc,
+                num_loc: num_loc,
+                date_libre: date_libre,
+                date_occupe: date_occupe,
+                salon: "", // Ajoutez ici la logique pour sauvegarder les fichiers (non implémenté ici)
+                chambre: "" // Ajoutez ici la logique pour sauvegarder les fichiers (non implémenté ici)
+            })
+            .then((docRef) => {
+                console.log("Document ajouté avec ID : ", docRef.id);
+                document.getElementById("confirmation-message").style.display = "block";
+                // Réinitialiser le formulaire après l'enregistrement
+                document.getElementById("annonce-form").reset();
+                setTimeout(() => {
+                    document.getElementById("confirmation-message").style.display = "none";
+                }, 3000); // Masque le message après 3 secondes
+            })
+            .catch((error) => {
+                console.error("Erreur lors de l'ajout du document : ", error);
+                alert("Erreur lors de l'enregistrement de l'annonce.");
+            });
+        }
+
+        // Ajouter un écouteur d'événement pour le formulaire
+        const form = document.getElementById('annonce-form');
+        form.addEventListener('submit', enregistrerAnnonce);
     </script>
-    <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyDiNEGaGlgIUmOgr0MamTVq8-rk8pY0f5w",
-    authDomain: "base-coloconnect.firebaseapp.com",
-    projectId: "base-coloconnect",
-    storageBucket: "base-coloconnect.appspot.com",
-    messagingSenderId: "297016049552",
-    appId: "1:297016049552:web:2591338215685358d3fd15",
-    measurementId: "G-X32BL3FZ5D"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
 </body>
 </html>
+
 
