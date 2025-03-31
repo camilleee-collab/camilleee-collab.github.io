@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script>
-        const supabaseUrl = "https://hnordlnzoxyclejyhwep.supabase.co";
-        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhub3JkbG56b3h5Y2xlanlod2VwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzOTEyNDEsImV4cCI6MjA1ODk2NzI0MX0.CtKMdptMxxla5jklz7w2O38HOiuN_pBjvSqsz8eIkeE";
+        const supabaseUrl = "https://xyzcompany.supabase.co"; // Remplace par ton URL Supabase
+        const supabaseKey = "ton-secret-api-key"; // Remplace par ta clé API
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
         async function signup(event) {
@@ -20,15 +20,21 @@
             const hasAlzheimer = document.getElementById("hasAlzheimer").checked;
             const password = document.getElementById("password").value;
             
-            const { user, error } = await supabase.auth.signUp({ email, password });
+            const { data, error } = await supabase.auth.signUp({ email, password });
             
             if (error) {
                 alert("Erreur: " + error.message);
             } else {
-                await supabase.from("users").insert([
+                const { error: insertError } = await supabase.from("users").insert([
                     { name: firstName, email, dob, hasAlzheimer }
                 ]);
-                window.location.href = "dashboard.html";
+                
+                if (insertError) {
+                    alert("Erreur lors de l'enregistrement des données : " + insertError.message);
+                } else {
+                    alert("Inscription réussie ! Redirection vers la page de connexion.");
+                    window.location.href = "login.html";
+                }
             }
         }
     </script>
@@ -45,7 +51,7 @@
             </label>
             <input type="password" id="password" placeholder="Password" required>
             <button type="submit">Sign Up</button>
-            <p>Already registered? <a href="index.html">Login here</a></p>
+            <p>Already registered? <a href="login.html">Login here</a></p>
         </form>
     </div>
 </body>
