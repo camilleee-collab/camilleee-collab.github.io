@@ -1,0 +1,109 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Couleurs en nuances de bleu canard */
+:root {
+    --dark-teal: #005f6b;
+    --medium-teal: #008c9e;
+    --light-teal: #00b4c6;
+    --background-light: #e0f7fa;
+}
+
+/* Style général */
+body {
+    background-color: var(--background-light);
+    color: var(--dark-teal);
+    text-align: center;
+}
+
+/* Conteneur des pages */
+.container {
+    max-width: 400px;
+    margin: 50px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Titres */
+h1 {
+    color: var(--medium-teal);
+    margin-bottom: 20px;
+}
+
+/* Formulaires */
+form input {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid var(--medium-teal);
+    border-radius: 5px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: var(--dark-teal);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background: var(--medium-teal);
+}
+
+/* Barre de navigation */
+.navbar {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px;
+    background: var(--dark-teal);
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Sections de la page d'accueil */
+.cards, .challenges, .missions {
+    background: white;
+    padding: 15px;
+    margin: 15px auto;
+    width: 80%;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Cartes */
+.card {
+    background: var(--light-teal);
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 5px;
+    display: inline-block;
+}
+
+/* Adaptation mobile */
+@media (max-width: 600px) {
+    .navbar {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .card {
+        display: block;
+        margin: 5px auto;
+    }
+}
