@@ -20,21 +20,28 @@
             const hasAlzheimer = document.getElementById("hasAlzheimer").checked;
             const password = document.getElementById("password").value;
             
-            const { data, error } = await supabase.auth.signUp({ email, password });
+            console.log("Tentative d'inscription...");
             
-            if (error) {
-                alert("Erreur: " + error.message);
+            const { data: authData, error: authError } = await supabase.auth.signUp({ email, password });
+            
+            if (authError) {
+                console.error("Erreur d'authentification :", authError);
+                alert("Erreur: " + authError.message);
+                return;
+            }
+
+            console.log("Utilisateur créé :", authData);
+
+            const { error: insertError } = await supabase.from("users").insert([
+                { name: firstName, email, dob, hasAlzheimer, user_id: authData.user?.id }
+            ]);
+            
+            if (insertError) {
+                console.error("Erreur d'insertion :", insertError);
+                alert("Erreur lors de l'enregistrement des données : " + insertError.message);
             } else {
-                const { error: insertError } = await supabase.from("users").insert([
-                    { name: firstName, email, dob, hasAlzheimer }
-                ]);
-                
-                if (insertError) {
-                    alert("Erreur lors de l'enregistrement des données : " + insertError.message);
-                } else {
-                    alert("Inscription réussie ! Redirection vers la page de connexion.");
-                    window.location.href = "login.html";
-                }
+                alert("Inscription réussie ! Redirection vers la page de connexion.");
+                window.location.href = "login.html";
             }
         }
     </script>
